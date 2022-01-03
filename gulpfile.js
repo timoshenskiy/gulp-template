@@ -11,6 +11,10 @@ const babel = require('gulp-babel')
 const uglify = require('gulp-uglify')
 // Плагин объединения нескольких JS файлов в один
 const concat = require('gulp-concat')
+// Плагин для отображения правильного источника стилей и скриптов в devTools
+const sourcemaps = require('gulp-sourcemaps')
+// Плагин для добавления префиксов стилям
+const autoprefixer = require('gulp-autoprefixer')
 // Плагин удаления директорий
 const del = require('del')
 
@@ -34,23 +38,32 @@ function clean() {
 // Функция сборки стилей
 function styles() {
     return gulp.src(paths.styles.src)
+        .pipe(sourcemaps.init())
         .pipe(less())
-        .pipe(cleanCSS())
+        .pipe(autoprefixer({
+            cascade: false
+        }))
+        .pipe(cleanCSS({
+            level: 2
+        }))
         .pipe(rename({
             basename: 'main',
             suffix: '.min'
         }))
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.styles.dest))
 }
 
 // Функция сборки скриптов
 function scripts() {
-    return gulp.src(paths.scripts.src, {
-        sourcemaps: true
-    })
-        .pipe(babel())
+    return gulp.src(paths.scripts.src)
+        .pipe(sourcemaps.init())
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(uglify())
         .pipe(concat('main.min.js'))
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.scripts.dest))
 
 
